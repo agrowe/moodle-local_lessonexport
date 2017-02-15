@@ -399,13 +399,12 @@ class local_lessonexport {
     protected function end_export($exp, $download) {
         global $CFG;
 
-        $filename = $this->get_filename($download);
-        
+        $filename = $this->get_filename($download);        
         $config = get_config('local_lessonexport');
         $password = $config->pdfpassword;
 
         // Add the configured protection to the PDF
-        $exp->protect($this->get_filename($download), $password);
+        $exp->protect($this->get_filename($download), $userPassword, $password);
 
         /** @var pdf $exp */
         if ($download) {
@@ -782,7 +781,7 @@ class lessonexport_pdf extends pdf {
         return parent::openHTMLTagHandler($dom, $key, $cell);
     }
 
-    public function protect($file, $password) {
+    public function protect($file, $userPassword, $ownerPassword) {
         global $CFG;
 
         // $pagecount = parent::setSourceFile($file);
@@ -793,7 +792,7 @@ class lessonexport_pdf extends pdf {
         // }
 
         $permissions=array('print', 'modify', 'copy', 'annot-forms', 'fill-forms', 'extract', 'assemble', 'print-high');
-        $this->SetProtection($permissions, '', $password);
+        $this->SetProtection($permissions, $userPassword, $ownerPassword);
         $this->Output($file, 'D');
                 
         return $file;
