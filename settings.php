@@ -25,6 +25,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
+    $ADMIN->add('modules', new admin_category('lessonexport', 'Lesson Export'));
+    $pag = new admin_settingpage('lessonexportpage', 'Lesson Export');    
+
     if (!$page = $ADMIN->locate('modsettinglesson')) {
         // No settings page exists for the lesson add it.
         $lessonname = get_string('pluginname', 'lesson');
@@ -41,17 +44,17 @@ if ($hassiteconfig) {
         }
         $ADMIN->add('modsettings', $page, $beforesibling);
     }
-
-    $page->add(new admin_setting_configtext('local_lessonexport/publishemail', get_string('publishemail', 'local_lessonexport'),
+    
+    $pag->add(new admin_setting_configtext('local_lessonexport/publishemail', get_string('publishemail', 'local_lessonexport'),
                                             get_string('publishemail_desc', 'local_lessonexport'), '', PARAM_EMAIL));
     
-    $page->add(new admin_setting_configtext('local_lessonexport/customfont', get_string('customfont', 'local_lessonexport'), 
+    $pag->add(new admin_setting_configtext('local_lessonexport/customfont', get_string('customfont', 'local_lessonexport'), 
                                             get_string('customfont_desc', 'local_lessonexport'), 'helvetica', PARAM_RAW));
 
-    $page->add(new admin_setting_configpasswordunmask('local_lessonexport/pdfUserPassword', get_string('pdfuserpassword', 'local_lessonexport'),
+    $pag->add(new admin_setting_configpasswordunmask('local_lessonexport/pdfUserPassword', get_string('pdfuserpassword', 'local_lessonexport'),
                                             get_string('pdfuserpassword_desc', 'local_lessonexport'), ''));
 
-    $page->add(new admin_setting_configpasswordunmask('local_lessonexport/pdfOwnerPassword', get_string('pdfownerpassword', 'local_lessonexport'),
+    $pag->add(new admin_setting_configpasswordunmask('local_lessonexport/pdfOwnerPassword', get_string('pdfownerpassword', 'local_lessonexport'),
                                             get_string('pdfownerpassword_desc', 'local_lessonexport'), ''));
 
     $choices = array(
@@ -74,9 +77,14 @@ if ($hassiteconfig) {
         //'assemble'  => 'enabled',  // assemble
         // 'high-def'  => 'enabled'    // high-def
     );
-    $page->add(new admin_setting_configmulticheckbox('local_lessonexport/pdfprotect', get_string('pdfprotection','local_lessonexport'),
+    $pag->add(new admin_setting_configmulticheckbox('local_lessonexport/pdfprotect', get_string('pdfprotection','local_lessonexport'),
                                             get_string('pdfprotection_desc', 'local_lessonexport'), $defaults, $choices));                
 
-    $page->add(new admin_setting_configcheckbox('local_lessonexport/exportstrict', get_string('exportstrict', 'local_lessonexport'),
+    $pag->add(new admin_setting_configcheckbox('local_lessonexport/exportstrict', get_string('exportstrict', 'local_lessonexport'),
                                             get_string('exportstrict_desc', 'local_lessonexport'), 0));
+
+    $pag->add(new admin_setting_configcheckbox('local_lessonexport/exportstrict', get_string('exportstrict', 'local_lessonexport'),
+                                            get_string('exportstrict_desc', 'local_lessonexport'), 0));
+
+    $ADMIN->add('lessonexport', $pag);
 }
