@@ -41,19 +41,12 @@ class local_lessonexport {
     protected $groupid;
 
     const EXPORT_PDF = 'pdf';
-
     const MAX_EXPORT_ATTEMPTS = 2;
 
-    protected static $exporttypes = array(self::EXPORT_PDF);
-
-    public function __construct($cm, $lesson, $exporttype, $userid = 0, $groupid = 0) {
+    public function __construct($cm, $lesson, $userid = 0, $groupid = 0) {
         $this->cm = $cm;
         $this->lesson = $lesson;
-        if (in_array($exporttype, self::$exporttypes)) {
-            $this->exporttype = $exporttype;
-        } else {
-            $this->exporttype = reset(self::$exporttypes); // Default to first type in the list.
-        }
+        $this->exporttype = self::EXPORT_PDF;
         $this->userid = $userid;
         if (is_object($this->userid)) {
             $this->userid = $this->userid->id;
@@ -73,20 +66,18 @@ class local_lessonexport {
         $ret = array();
         $context = context_module::instance($cm->id);
 
-        // Add links for the different export types.
-        foreach (self::$exporttypes as $exporttype) {
-            $capability = 'local/lessonexport:export'.$exporttype;
-            if (has_capability($capability, $context)) {
-                $name = get_string('export'.$exporttype, 'local_lessonexport');
-                $url = new moodle_url('/local/lessonexport/export.php', array('id' => $cm->id, 'type' => $exporttype));
-                if ($userid) {
-                    $url->param('userid', $userid);
-                }
-                if ($groupid) {
-                    $url->param('groupid', $groupid);
-                }
-                $ret[$name] = $url;
+        // Add links for the different export types.        
+        $capability = 'local/lessonexport:export'.self::EXPORT_PDF;
+        if (has_capability($capability, $context)) {
+            $name = get_string('export'.self::EXPORT_PDF, 'local_lessonexport');
+            $url = new moodle_url('/local/lessonexport/export.php', array('id' => $cm->id));
+            if ($userid) {
+                $url->param('userid', $userid);
             }
+            if ($groupid) {
+                $url->param('groupid', $groupid);
+            }
+            $ret[$name] = $url;
         }
 
         // Add the 'sort pages' link.

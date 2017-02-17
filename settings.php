@@ -28,7 +28,7 @@ if ($hassiteconfig) {
     $ADMIN->add('modules', new admin_category('lessonexport', 'Lesson Export'));
     $pag = new admin_settingpage('lessonexportpage', 'Lesson Export');    
 
-    if (!$page = $ADMIN->locate('modsettinglesson')) {
+    /* if (!$page = $ADMIN->locate('modsettinglesson')) {
         // No settings page exists for the lesson add it.
         $lessonname = get_string('pluginname', 'lesson');
         $page = new admin_settingpage('modsettinglesson', $lessonname);
@@ -43,7 +43,7 @@ if ($hassiteconfig) {
             }
         }
         $ADMIN->add('modsettings', $page, $beforesibling);
-    }
+    }*/
     
     $pag->add(new admin_setting_configtext('local_lessonexport/publishemail', get_string('publishemail', 'local_lessonexport'),
                                             get_string('publishemail_desc', 'local_lessonexport'), '', PARAM_EMAIL));

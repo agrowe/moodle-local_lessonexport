@@ -27,7 +27,6 @@ global $CFG, $DB, $USER, $PAGE;
 require_once($CFG->dirroot.'/local/lessonexport/lib.php');
 
 $cmid = required_param('id', PARAM_INT);
-$exporttype = required_param('type', PARAM_ALPHA);
 $groupid = optional_param('groupid', 0, PARAM_INT);
 
 $user = null;
@@ -47,7 +46,7 @@ if ($groupid && $cm->groupmode != NOGROUPS) {
     $group = $DB->get_record('groups', array('id' => $groupid, 'courseid' => $course->id), '*', MUST_EXIST);
 }
 
-$url = new moodle_url('/local/lessonexport/export.php', array('id' => $cm->id, 'type' => $exporttype));
+$url = new moodle_url('/local/lessonexport/export.php', array('id' => $cm->id));
 if ($user) {
     $url->param('userid', $user->id);
 }
@@ -58,11 +57,6 @@ $PAGE->set_url($url);
 
 require_login($course, false, $cm);
 
-$export = new local_lessonexport($cm, $lesson, $exporttype, $user, $group);
+$export = new local_lessonexport($cm, $lesson, $user, $group);
 $export->check_access();
-
-if ($exporttype == "pdf") {
-    $export->export(true);
-} else {
-    $export->export();
-}
+$export->export(true);
