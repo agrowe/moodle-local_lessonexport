@@ -27,23 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 if ($hassiteconfig) {
     $ADMIN->add('modules', new admin_category('lessonexport', 'Lesson Export'));
     $pag = new admin_settingpage('lessonexportpage', 'Lesson Export');    
-
-    /* if (!$page = $ADMIN->locate('modsettinglesson')) {
-        // No settings page exists for the lesson add it.
-        $lessonname = get_string('pluginname', 'lesson');
-        $page = new admin_settingpage('modsettinglesson', $lessonname);
-
-        // Insert the new lesson settings page in the correct alphabetical order.
-        $beforesibling = null;
-        $modules = $ADMIN->locate('modsettings');
-        foreach ($modules->children as $module) {
-            if (strcmp($module->visiblename, $lessonname) > 0) {
-                $beforesibling = $module->name;
-                break;
-            }
-        }
-        $ADMIN->add('modsettings', $page, $beforesibling);
-    }*/
     
     $pag->add(new admin_setting_configtext('local_lessonexport/publishemail', get_string('publishemail', 'local_lessonexport'),
                                             get_string('publishemail_desc', 'local_lessonexport'), '', PARAM_EMAIL));
