@@ -1,5 +1,5 @@
 Lesson export
-===========
+=============
 
 This plugin adds the ability to export Moodle lessons as PDF documents.
 Many thanks to Davo Smith for developing the original base-code this plugin was ported from.
@@ -10,19 +10,22 @@ Usage
 Once the plugin is installed, you can visit a lesson, then click on the new 'Export as PDF' link that appears
 in the activity administration block (with javascript enabled, similar links are inserted on the top-right corner of the page).
 
+Settings
+========
+
 There are many globally configurable options for exporting PDF documents from a lesson including;
 
-### Common Settings
+## Common Settings
 - An auto-publish email address
 - Strict mode - Throw exceptions on content errors
 
-### PDF Settings
+## PDF Settings
 - Configurable PDF protection settings
 - A user password
 - A owner password
 - A font family
 
-### EPUB Settings
+## EPUB Settings
 - Custom CSS
 
 Customising
