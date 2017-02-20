@@ -35,34 +35,18 @@ class local_lessonexport {
     protected $lessoninfo;
     /** @var string */
     protected $exporttype;
-    /** @var object */
-    protected $userid;
-    /** @var object */
-    protected $groupid;
 
     const EXPORT_PDF = 'pdf';
     const MAX_EXPORT_ATTEMPTS = 2;
 
-    public function __construct($cm, $lesson, $userid = 0, $groupid = 0) {
+    public function __construct($cm, $lesson) {
         $this->cm = $cm;
         $this->lesson = $lesson;
         $this->exporttype = self::EXPORT_PDF;
-        $this->userid = $userid;
-        if (is_object($this->userid)) {
-            $this->userid = $this->userid->id;
-        } else if ($this->userid === null) {
-            $this->userid = 0;
-        }
-        $this->groupid = $groupid;
-        if (is_object($this->groupid)) {
-            $this->groupid = $this->groupid->id;
-        } else if ($this->groupid === null) {
-            $this->groupid = 0;
-        }
         $this->lessoninfo = new local_lessonexport_info();
     }
 
-    public static function get_links($cm, $userid = null, $groupid = null) {        
+    public static function get_links($cm) {        
         $context = context_module::instance($cm->id);
         $ret = array();
 
@@ -71,41 +55,16 @@ class local_lessonexport {
         if (has_capability($capability, $context)) {
             $name = get_string('export'.self::EXPORT_PDF, 'local_lessonexport');
             $url = new moodle_url('/local/lessonexport/export.php', array('id' => $cm->id));
-            if ($userid) {
-                $url->param('userid', $userid);
-            }
-            if ($groupid) {
-                $url->param('groupid', $groupid);
-            }
             $ret[$name] = $url;
         }
-        
+
         return $ret;
     }
 
     public function check_access() {
-        global $USER;
         $context = context_module::instance($this->cm->id);
         $capability = 'local/lessonexport:export'.$this->exporttype;
         require_capability($capability, $context);
-
-        $groupmode = groups_get_activity_groupmode($this->cm);
-        if ($this->groupid) {
-            if ($groupmode == SEPARATEGROUPS) {
-                if (!groups_is_member($this->groupid)) {
-                    if (!has_capability('mod/lesson:managelesson', $context)) {
-                        require_capability('moodle/site:accessallgroups', $context);
-                    }
-                }
-            }
-        }
-        // if ($this->userid) {
-        //     if ($this->userid !== $USER->id) {
-        //         if ($this->cm->groupmode != VISIBLEGROUPS) {
-        //             require_capability('mod/lesson:managelesson', $context);
-        //         }
-        //     }
-        // }
     }
 
     /**
@@ -168,7 +127,7 @@ class local_lessonexport {
 
             // Attempt the export.
             try {
-                $export = new local_lessonexport($lesson->cm, $lesson, self::EXPORT_PDF, $userid, $subwiki->groupid);
+                $export = new local_lessonexport($lesson->cm, $lesson, self::EXPORT_PDF);
                 $filepath = $export->export(false);
                 $filename = basename($filepath);
                 email_to_user($touser, $touser, get_string('lessonupdated', 'local_lessonexport', $lesson->name), $msg, '',
@@ -488,13 +447,9 @@ function local_lessonexport_extend_navigation($unused) {
     if (!$PAGE->cm || $PAGE->cm->modname != 'lesson') {
         return;
     }
-    $groupid = groups_get_activity_group($PAGE->cm);
-    $userid = 0;
     $lesson = $DB->get_record('lesson', array('id' => $PAGE->cm->instance), '*', MUST_EXIST);
 
-    $userid = $USER->id;
-
-    if (!$links = local_lessonexport::get_links($PAGE->cm, $userid, $groupid)) { // Meant to pass $userid
+    if (!$links = local_lessonexport::get_links($PAGE->cm)) {
         return;
     }
     $settingsnav = $PAGE->settingsnav;

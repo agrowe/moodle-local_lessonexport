@@ -23,33 +23,20 @@
  */
 
 require_once(dirname(__FILE__).'/../../config.php');
-global $CFG, $DB, $USER, $PAGE;
+global $CFG, $DB, $PAGE;
 require_once($CFG->dirroot.'/local/lessonexport/lib.php');
 
 $cmid = required_param('id', PARAM_INT);
-$groupid = optional_param('groupid', 0, PARAM_INT);
 
-$user = null;
 $cm = get_coursemodule_from_id('lesson', $cmid, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $lesson = $DB->get_record('lesson', array('id' => $cm->instance), '*', MUST_EXIST);
 
-$userid = required_param('userid', PARAM_INT);
-$user = ($userid == $USER->id) ? $user : $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
-
-$group = ($groupid && $cm->groupmode != NOGROUPS) ?
-    $DB->get_record('groups', array('id' => $groupid, 'courseid' => $course->id), '*', MUST_EXIST) :
-    null;
-
 $url = new moodle_url('/local/lessonexport/export.php', array('id' => $cm->id));
-
-($user) ? $url->param('userid', $user->id) : null;
-($group) ? $url->param('groupid', $group->id) : null;
-
 $PAGE->set_url($url);
 
 require_login($course, false, $cm);
 
-$export = new local_lessonexport($cm, $lesson, $user, $group);
+$export = new local_lessonexport($cm, $lesson);
 $export->check_access();
 $export->export();
