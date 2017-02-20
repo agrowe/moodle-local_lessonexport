@@ -35,28 +35,21 @@ $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST)
 $lesson = $DB->get_record('lesson', array('id' => $cm->instance), '*', MUST_EXIST);
 
 $userid = required_param('userid', PARAM_INT);
-if ($userid == $USER->id) {
-    $user = $USER;
-} else {
-    $user = $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
-}
+$user = ($userid == $USER->id) ? $user : $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
 
-$group = null;
-if ($groupid && $cm->groupmode != NOGROUPS) {
-    $group = $DB->get_record('groups', array('id' => $groupid, 'courseid' => $course->id), '*', MUST_EXIST);
-}
+$group = ($groupid && $cm->groupmode != NOGROUPS) ?
+    $DB->get_record('groups', array('id' => $groupid, 'courseid' => $course->id), '*', MUST_EXIST) :
+    null;
 
 $url = new moodle_url('/local/lessonexport/export.php', array('id' => $cm->id));
-if ($user) {
-    $url->param('userid', $user->id);
-}
-if ($group) {
-    $url->param('groupid', $group->id);
-}
+
+($user) ? $url->param('userid', $user->id) : null;
+($group) ? $url->param('groupid', $group->id) : null;
+
 $PAGE->set_url($url);
 
 require_login($course, false, $cm);
 
 $export = new local_lessonexport($cm, $lesson, $user, $group);
 $export->check_access();
-$export->export(true);
+$export->export();
