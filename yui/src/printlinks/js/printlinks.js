@@ -1,6 +1,6 @@
 /*global M*/
 M.local_lessonexport = M.local_lessonexport || {};
-M.local_lessonexport.printlinks = {    
+M.local_lessonexport.printlinks = {
     init: function(links) {
         var el, parent, i;
 

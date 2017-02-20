@@ -50,7 +50,7 @@ function xmldb_local_lessonexport_upgrade($oldversion = 0) {
             $dbman->create_table($table);
         }
 
-        // lessonexport savepoint reached.
+        // Lessonexport savepoint reached.
         upgrade_plugin_savepoint(true, 2014102000, 'local', 'lessonexport');
     }
 
@@ -71,7 +71,6 @@ function xmldb_local_lessonexport_upgrade($oldversion = 0) {
 
         // Adding fields to table lessonexport_queue.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        // $table->add_field('lessonid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('exportattempts', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '0');
 
         // Adding keys to table lessonexport_queue.
@@ -82,9 +81,9 @@ function xmldb_local_lessonexport_upgrade($oldversion = 0) {
             $dbman->create_table($table);
         }
 
-        // lessonexport savepoint reached.
+        // Lessonexport savepoint reached.
         upgrade_plugin_savepoint(true, 2015071300, 'local', 'lessonexport');
     }
 
-   return true;
+    return true;
 }

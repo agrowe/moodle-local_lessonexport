@@ -46,11 +46,11 @@ class local_lessonexport {
         $this->lessoninfo = new local_lessonexport_info();
     }
 
-    public static function get_links($cm) {        
+    public static function get_links($cm) {
         $context = context_module::instance($cm->id);
         $ret = array();
 
-        // Add links for the different export types.        
+        // Add links for the different export types.
         $capability = 'local/lessonexport:export'.self::EXPORT_PDF;
         if (has_capability($capability, $context)) {
             $name = get_string('export'.self::EXPORT_PDF, 'local_lessonexport');
@@ -136,7 +136,7 @@ class local_lessonexport {
 
                 // Export successful - update the queue.
                 self::remove_from_queue($lesson);
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 print_r($e);
                 print_r($lesson);
             }
@@ -191,8 +191,8 @@ class local_lessonexport {
      * The return object includes the lesson and cm as sub-objects.
      *
      * @return object|null null if none left to export
-     */    
-	protected static function get_next_from_queue() {
+     */
+    protected static function get_next_from_queue() {
         global $DB;
 
         static $cm = null;
@@ -216,7 +216,7 @@ class local_lessonexport {
 
         // Add the lesson + cm objects to the return object.
         if (!$lesson || $lesson->id != $nextitem->lessonid) {
-            if (!$lesson == $DB->get_record('lesson', array('id' => $nextitem->lessonid))) {            
+            if (!$lesson == $DB->get_record('lesson', array('id' => $nextitem->lessonid))) {
                 mtrace("Page updated for lesson ID {$nextitem->lessonid}, which does not exist\n");
                 return self::get_next_from_queue();
             }
@@ -240,7 +240,7 @@ class local_lessonexport {
         global $DB;
         $DB->delete_records('local_lessonexport_queue', array('id' => $lesson->queueid));
     }
-	
+
     protected function load_pages() {
         global $DB, $USER;
 
@@ -281,7 +281,7 @@ class local_lessonexport {
             }
         }
 
-        // Replace links to other pages with anchor links to '#pageid-[page id]' (PDF)
+        // Replace links to other pages with anchor links to '#pageid-[page id]' (PDF).
         $baseurl = new moodle_url('/mod/lesson/view.php', array('pageid' => 'PAGEID'));
         $baseurl = $baseurl->out(false);
         $baseurl = preg_quote($baseurl);
@@ -315,13 +315,13 @@ class local_lessonexport {
 
     protected function start_export($download) {
         global $CFG;
-        $exp = new lessonexport_pdf();            
+        $exp = new lessonexport_pdf();
         $restricttocontext = false;
         if ($download) {
             $restricttocontext = context_module::instance($this->cm->id);
         }
         $exp->use_direct_image_load($restricttocontext);
-        $exp->SetMargins(20, 10, -1, true); // Set up wider left margin than default.        
+        $exp->SetMargins(20, 10, -1, true); // Set up wider left margin than default.
 
         return $exp;
     }
@@ -331,21 +331,20 @@ class local_lessonexport {
         $exp->addPage();
         $exp->setDestination('pageid-'.$page->id);
         $exp->writeHTML('<h2>'.$page->title.'</h2>');
-        $exp->writeHTML($page->contents);        
+        $exp->writeHTML($page->contents);
     }
 
     protected function end_export($exp, $download) {
         global $CFG;
 
-        $filename = $this->get_filename($download);        
+        $filename = $this->get_filename($download);
         $config = get_config('local_lessonexport');
-        $userPassword = $config->pdfUserPassword;
-        $ownerPassword = $config->pdfOwnerPassword;
+        $userpassword = $config->pdfUserPassword;
+        $ownerpassword = $config->pdfOwnerPassword;
 
-        // Add the configured protection to the PDF
-        $exp->protect($this->get_filename($download), $userPassword, $ownerPassword);
+        // Add the configured protection to the PDF.
+        $exp->protect($this->get_filename($download), $userpassword, $ownerpassword);
 
-        /** @var pdf $exp */
         if ($download) {
             $exp->Output($filename, 'D');
         } else {
@@ -388,11 +387,11 @@ class local_lessonexport {
         // Rounded rectangle.
         $exp->RoundedRect(9, 9, 192, 279, 6.5);
         // Logo.
-        $exp->Image($CFG->dirroot.'/local/lessonexport/pix/logo.png', 52, 27, 103, 36);
+        $exp->image($CFG->dirroot.'/local/lessonexport/pix/logo.png', 52, 27, 103, 36);
         // Title bar.
-        $exp->Rect(9, 87.5, 192, 2.5, 'F', array(), array(18,160,83));
-        $exp->Rect(9, 90, 192, 30, 'F', array(), array(18,160,83));
-        $exp->Rect(9, 120, 192, 2.5, 'F', array(), array(18,160,83));
+        $exp->Rect(9, 87.5, 192, 2.5, 'F', array(), array(18, 160, 83));
+        $exp->Rect(9, 90, 192, 30, 'F', array(), array(18, 160, 83));
+        $exp->Rect(9, 120, 192, 2.5, 'F', array(), array(18, 160, 83));
 
         // Title text.
         $title = $this->lesson->name;
@@ -621,10 +620,11 @@ class lessonexport_pdf extends pdf {
         $this->restricttocontext = $restricttocontext;
 
         $config = get_config('local_lessonexport');
-        if (empty($config->customfont))
+        if (empty($config->customfont)) {
             $font = 'helvetica';
-        else
+        } else {
             $font = $config->customfont;
+        }
 
         $this->SetFont($font, '', 12);
     }
@@ -654,16 +654,17 @@ class lessonexport_pdf extends pdf {
      * @param bool $alt
      * @param array $altimgs
      */
-    public function Image($file, $x = '', $y = '', $w = 0, $h = 0, $type = '', $link = '', $align = '', $resize = false,
-                          $dpi = 300, $palign = '', $ismask = false, $imgmask = false, $border = 0, $fitbox = false, $hidden = false,
-                          $fitonpage = false, $alt = false, $altimgs = array()) {
-        
+    public function image($file, $x = '', $y = '', $w = 0, $h = 0, $type = '', $link = '', $align = '', $resize = false,
+                          $dpi = 300, $palign = '', $ismask = false, $imgmask = false, $border = 0, $fitbox = false,
+                          $hidden = false, $fitonpage = false, $alt = false, $altimgs = array()) {
+
         $config = get_config('local_lessonexport');
         $exportstrict = $config->exportstrict;
 
         if ($exportstrict) {
             if ($this->directimageload) {
-                // Get the image data directly from the Moodle files API (needed when generating within cron, instead of downloading).
+                // Get the image data directly from the Moodle files API.
+                // (needed when generating within cron, instead of downloading).
                 $file = $this->get_image_data($file);
             } else {
                 // Make sure the filename part of the URL is urlencoded (convert spaces => %20, etc.).
@@ -682,12 +683,12 @@ class lessonexport_pdf extends pdf {
                           $fitbox, $hidden, $fitonpage, $alt, $altimgs);
             } catch (Exception $e) {
                 $this->writeHTML(get_string('failedinsertimage', 'local_lessonexport', $file));
-            }            
-        } 
-        else {
+            }
+        } else {
             try {
                 if ($this->directimageload) {
-                    // Get the image data directly from the Moodle files API (needed when generating within cron, instead of downloading).
+                    // Get the image data directly from the Moodle files API.
+                    // (needed when generating within cron, instead of downloading).
                     $file = $this->get_image_data($file);
                 } else {
                     // Make sure the filename part of the URL is urlencoded (convert spaces => %20, etc.).
@@ -704,16 +705,16 @@ class lessonexport_pdf extends pdf {
                 parent::Image($file, $x, $y, $w, $h, $type, $link, $align, $resize, $dpi, $palign, $ismask, $imgmask, $border,
                             $fitbox, $hidden, $fitonpage, $alt, $altimgs);
             } catch (Exception $e) {
-                // ignore
+                // ignore.
             }
-        }        
+        }
     }
 
-    public function Header() {
+    public function header() {
         // No header.
     }
 
-    public function Footer() {
+    public function footer() {
         // No footer.
     }
 
@@ -738,7 +739,7 @@ class lessonexport_pdf extends pdf {
      * @param $cell
      * @return mixed
      */
-    protected function openHTMLTagHandler($dom, $key, $cell) {
+    protected function openhtmltaghandler($dom, $key, $cell) {
         $tag = $dom[$key];
         if (array_key_exists('name', $tag['attribute'])) {
             $this->setDestination($tag['attribute']['name']); // Store the destination for TOC links.
@@ -746,13 +747,13 @@ class lessonexport_pdf extends pdf {
         return parent::openHTMLTagHandler($dom, $key, $cell);
     }
 
-    public function protect($file, $userPassword, $ownerPassword) {
+    public function protect($file, $userpassword, $ownerpassword) {
         global $CFG;
-        
-        $permissions=array('print', 'modify', 'copy', 'annot-forms', 'fill-forms', 'extract', 'assemble', 'print-high');
-        $this->SetProtection($permissions, $userPassword, $ownerPassword);
+
+        $permissions = array('print', 'modify', 'copy', 'annot-forms', 'fill-forms', 'extract', 'assemble', 'print-high');
+        $this->SetProtection($permissions, $userpassword, $ownerpassword);
         $this->Output($file, 'D');
-                
+
         return $file;
     }
 }
