@@ -62,9 +62,9 @@ class local_lessonexport {
         $this->lessoninfo = new local_lessonexport_info();
     }
 
-    public static function get_links($cm, $userid = null, $groupid = null) {
-        $ret = array();
+    public static function get_links($cm, $userid = null, $groupid = null) {        
         $context = context_module::instance($cm->id);
+        $ret = array();
 
         // Add links for the different export types.        
         $capability = 'local/lessonexport:export'.self::EXPORT_PDF;
@@ -79,19 +79,7 @@ class local_lessonexport {
             }
             $ret[$name] = $url;
         }
-
-        // Add the 'sort pages' link.
-        if (has_capability('mod/lesson:managelesson', $context)) {
-            $name = get_string('sortpages', 'local_lessonexport');
-            $url = new moodle_url('/local/lessonexport/sortpages.php', array('id' => $cm->id));
-            if ($userid) {
-                $url->param('userid', $userid);
-            }
-            if ($groupid) {
-                $url->param('groupid', $groupid);
-            }
-            $ret[$name] = $url;
-        }
+        
         return $ret;
     }
 
@@ -111,13 +99,13 @@ class local_lessonexport {
                 }
             }
         }
-        if ($this->userid) {
-            if ($this->userid !== $USER->id) {
-                if ($this->cm->groupmode != VISIBLEGROUPS) {
-                    require_capability('mod/lesson:managelesson', $context);
-                }
-            }
-        }
+        // if ($this->userid) {
+        //     if ($this->userid !== $USER->id) {
+        //         if ($this->cm->groupmode != VISIBLEGROUPS) {
+        //             require_capability('mod/lesson:managelesson', $context);
+        //         }
+        //     }
+        // }
     }
 
     /**
@@ -811,242 +799,5 @@ class lessonexport_pdf extends pdf {
         $this->Output($file, 'D');
                 
         return $file;
-    }
-}
-
-class local_lessonexport_sortpages {
-    protected $cm;
-    protected $lesson;
-    protected $userid;
-    protected $groupid;
-
-    protected $action = null;
-    protected $pages = array();
-
-    public function __construct($cm, $lesson, $userid, $groupid) {
-        $this->cm = $cm;
-        $this->lesson = $lesson;
-        $this->userid = $userid;
-        if (is_object($this->userid)) {
-            $this->userid = $this->userid->id;
-        } else if ($this->userid === null) {
-            $this->userid = 0;
-        }
-        $this->groupid = $groupid;
-        if (is_object($this->groupid)) {
-            $this->groupid = $this->groupid->id;
-        } else if ($this->groupid === null) {
-            $this->groupid = 0;
-        }
-    }
-
-    public function check_access() {
-        $context = context_module::instance($this->cm->id);
-        require_capability('mod/lesson:managelesson', $context);
-    }
-
-    public function process($action) {
-        global $PAGE;
-
-        if ($action) {
-            $this->action = $action;
-        } else {
-            $this->action = 'list';
-        }
-
-        $this->load_pages();
-
-        if ($this->action == 'moveup' || $this->action == 'movedown' || $this->action == 'moveto') {
-            $pageid = required_param('pageid', PARAM_INT);
-            require_sesskey();
-
-            if (!isset($this->pages[$pageid])) {
-                throw new moodle_exception('invalidpageid', 'local_lessonexport');
-            }
-            $page = $this->pages[$pageid];
-
-            if ($this->action == 'moveto') {
-                $newpos = required_param('position', PARAM_INT);
-            } else if ($this->action == 'moveup') {
-                $newpos = $page->sortorder - 1;
-            } else { // Move down.
-                $newpos = $page->sortorder + 1;
-            }
-            $this->move_page_to($page, $newpos);
-
-            if (AJAX_SCRIPT) {
-                $result = (object)array(
-                    'error' => 0,
-                    'order' => $this->get_new_pageorder(),
-                );
-                echo json_encode($result);
-                die();
-
-            } else {
-                redirect($PAGE->url);
-            }
-
-        } else if ($this->action != 'list') {
-            throw new moodle_exception('invalidaction', 'local_lessonexport');
-        }
-    }
-
-    public function output() {
-        global $OUTPUT, $PAGE;
-
-        $opts = array('cmid' => $this->cm->id, 'groupid' => $this->groupid, 'userid' => $this->userid, 'sesskey' => sesskey());
-        $PAGE->requires->yui_module('moodle-local_lessonexport-sortpages', 'M.local_lessonexport.sortpages.init',
-                                    array($opts), null, true);
-
-        $upicon = $OUTPUT->pix_icon('t/up', get_string('moveup'));
-        $downicon = $OUTPUT->pix_icon('t/down', get_string('movedown'));
-        $spacericon = $OUTPUT->pix_icon('spacer', '');
-        $moveicon = $OUTPUT->pix_icon('i/move_2d', get_string('move'));
-
-        $intro = html_writer::tag('p', get_string('sortpagesintro', 'local_lessonexport'));
-
-        $list = '';
-        $lastpage = end($this->pages);
-        foreach ($this->pages as $page) {
-            $item = '';
-
-            $nojsicons = '';
-            if ($page->sortorder != 0) { // Cannot move the first page.
-                $baseurl = new moodle_url($PAGE->url, array('pageid' => $page->id, 'sesskey' => sesskey()));
-                if ($page->sortorder > 1) {
-                    $url = new moodle_url($baseurl, array('action' => 'moveup'));
-                    $nojsicons .= html_writer::link($url, $upicon);
-                } else {
-                    $nojsicons .= $spacericon;
-                }
-                if ($page->sortorder < $lastpage->sortorder) {
-                    $url = new moodle_url($baseurl, array('action' => 'movedown'));
-                    $nojsicons .= html_writer::link($url, $downicon);
-                } else {
-                    $nojsicons .= $spacericon;
-                }
-
-                $jsicons = $moveicon;
-            } else {
-                $nojsicons = $spacericon.$spacericon;
-                $jsicons = $spacericon;
-            }
-
-            $item .= html_writer::span($nojsicons, 'nojsicons');
-            $item .= html_writer::span($jsicons, 'jsicons');
-
-            $title = shorten_text(format_string($page->title), 100);
-            $item .= html_writer::span($title, 'lessontitle');
-
-            $attrib = array('id' => 'lessonpageid-'.$page->id, 'class' => 'sortorder-'.$page->sortorder);
-            if ($page->sortorder == 0) {
-                $attrib['class'] .= ' nomove';
-            }
-            $list .= html_writer::tag('li', $item, $attrib);
-        }
-        $list = html_writer::tag('ul', $list, array('class' => 'lesson-sortpages', 'id' => 'lesson-sortpages'));
-        $spinner = html_writer::div('&nbsp;', 'lesson-sortpages-spinner', array('id' => 'lesson-sortpages-spinner'));
-
-        return $intro.$spinner.$list;
-    }
-
-    /**
-     * Load the lesson pages, making sure the sortorder is set for each of them.
-     * Pages will be sorted in the correct order and indexed kby the page id.
-     */
-    protected function load_pages() {
-        global $DB;
-
-        // Load the pages into memory.
-        // $subwiki = $DB->get_record('wiki_subwikis', array('wikiid' => $this->lesson->id, 'groupid' => $this->groupid,
-        //                                                   'userid' => $this->userid), '*');
-        $lesson = $DB->get_record('lesson', array('id' => $this->lesson->id), '*');
-        if (!$lesson) {
-            return;
-        }
-        $sql = "SELECT p.id, p.title, xo.sortorder, xo.id AS orderid
-                  FROM {lesson_pages} p
-                  ORDER BY xo.sortorder, p.title";
-		$this->pages = $DB->get_records_sql($sql);
-
-        // Make sure the sortorder is set for each page in the lesson.
-        $sortorder = 0;
-        foreach ($this->pages as $page) {
-            if ($page->sortorder !== $sortorder) {
-                $page->sortorder = $sortorder;
-                $this->save_sortorder($page);
-            }
-            $sortorder++;
-        }
-    }
-
-    protected function move_page_to($movepage, $newpos) {
-        if ($newpos < 0) {
-            return; // Cannot move below 0.
-        }
-        if ($movepage->sortorder == $newpos) {
-            return; // No change in position.
-        }
-        $move = -1; // Other pages need to move backward.
-        if ($movepage->sortorder > $newpos) {
-            $move = 1; // Other pages need to move forward.
-        }
-
-        $maxpos = 0;
-        foreach ($this->pages as $page) {
-            if ($page->id == $movepage->id) {
-                continue; // Update the page being moved after moving all other pages.
-            }
-            if ($move > 0) {
-                if ($page->sortorder >= $newpos) {
-                    if ($page->sortorder < $movepage->sortorder) {
-                        // Move pages newpos...oldpos one space forward.
-                        $page->sortorder += 1;
-                        $this->save_sortorder($page);
-                    }
-                }
-            } else {
-                if ($page->sortorder <= $newpos) {
-                    if ($page->sortorder > $movepage->sortorder) {
-                        // Move pages oldpos...newpos one space backward.
-                        $page->sortorder -= 1;
-                        $this->save_sortorder($page);
-                    }
-                }
-            }
-            $maxpos = $page->sortorder;
-        }
-
-        if ($newpos > $maxpos) {
-            $newpos = $maxpos + 1; // Limit to one more than the maximum of the other sortorders.
-        }
-
-        if ($movepage->sortorder != $newpos) {
-            $movepage->sortorder = $newpos;
-            $this->save_sortorder($movepage);
-        }
-    }
-
-    protected function save_sortorder($page) {
-        global $DB;
-        if ($page->orderid) {
-            $DB->set_field('local_lessonexport_order', 'sortorder', $page->sortorder, array('id' => $page->orderid));
-        } else {
-            $ins = (object)array(
-                'cmid' => $this->cm->id,
-                'courseid' => $this->cm->course,
-                'pageid' => $page->id,
-                'sortorder' => $page->sortorder,
-            );
-            $page->orderid = $DB->insert_record('local_lessonexport_order', $ins);
-        }
-    }
-
-    protected function get_new_pageorder() {
-        $pageorder = array();
-        foreach ($this->pages as $page) {
-            $pageorder[$page->id] = $page->sortorder;
-        }
-        return $pageorder;
     }
 }
