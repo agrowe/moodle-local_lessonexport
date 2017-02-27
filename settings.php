@@ -69,7 +69,7 @@ if ($hassiteconfig) {
                                             get_string('pdffooterbottomright', 'local_lessonexport'),
                                             get_string('pdffooterbottomright_desc', 'local_lessonexport'), ''));
 
-    $page->add(new admin_setting_checkbox('local_lessonexport/pdfFrontCoverPageNumbers',
+    $page->add(new admin_setting_configcheckbox('local_lessonexport/pdfFrontCoverPageNumbers',
                                             get_string('pdffrontcoverpagenumbers', 'local_lessonexport'),
                                             get_string('pdffrontcoverpagenumbers_desc', 'local_lessonexport'), 1));
 
@@ -97,10 +97,6 @@ if ($hassiteconfig) {
     $pag->add(new admin_setting_configmulticheckbox('local_lessonexport/pdfprotect',
                                             get_string('pdfprotection', 'local_lessonexport'),
                                             get_string('pdfprotection_desc', 'local_lessonexport'), $defaults, $choices));
-
-    $pag->add(new admin_setting_configcheckbox('local_lessonexport/exportstrict',
-                                            get_string('exportstrict', 'local_lessonexport'),
-                                            get_string('exportstrict_desc', 'local_lessonexport'), 0));
 
     $pag->add(new admin_setting_configcheckbox('local_lessonexport/exportstrict',
                                             get_string('exportstrict', 'local_lessonexport'),
