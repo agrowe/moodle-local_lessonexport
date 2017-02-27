@@ -44,6 +44,36 @@ if ($hassiteconfig) {
                                             get_string('pdfownerpassword', 'local_lessonexport'),
                                             get_string('pdfownerpassword_desc', 'local_lessonexport'), ''));
 
+    // Footer text areas.
+    $page->add(new admin_setting_confightmleditor('local_lessonexport/pdfFooterTopLeft',
+                                            get_string('pdffootertopleft', 'local_lessonexport'),
+                                            get_string('pdffootertopleft_desc', 'local_lessonexport'), ''));
+
+    $page->add(new admin_setting_confightmleditor('local_lessonexport/pdfFooterTopMiddle',
+                                            get_string('pdffootertopmiddle', 'local_lessonexport'),
+                                            get_string('pdffootertopmiddle_desc', 'local_lessonexport'), ''));
+
+    $page->add(new admin_setting_confightmleditor('local_lessonexport/pdfFooterTopRight',
+                                            get_string('pdffootertopright', 'local_lessonexport'),
+                                            get_string('pdffootertopright_desc', 'local_lessonexport'), ''));
+
+    $page->add(new admin_setting_confightmleditor('local_lessonexport/pdfFooterBottomLeft',
+                                            get_string('pdffooterbottomleft', 'local_lessonexport'),
+                                            get_string('pdffooterbottomleft_desc', 'local_lessonexport'), ''));
+
+    $page->add(new admin_setting_confightmleditor('local_lessonexport/pdfFooterBottomMiddle',
+                                            get_string('pdffooterbottommiddle', 'local_lessonexport'),
+                                            get_string('pdffooterbottommiddle_desc', 'local_lessonexport'), ''));
+
+    $page->add(new admin_setting_confightmleditor('local_lessonexport/pdfFooterBottomRight',
+                                            get_string('pdffooterbottomright', 'local_lessonexport'),
+                                            get_string('pdffooterbottomright_desc', 'local_lessonexport'), ''));
+
+    $page->add(new admin_setting_checkbox('local_lessonexport/pdfFrontCoverPageNumbers',
+                                            get_string('pdffrontcoverpagenumbers', 'local_lessonexport'),
+                                            get_string('pdffrontcoverpagenumbers_desc', 'local_lessonexport'), 1));
+
+    // PDF permission settings.
     $choices = array(
         'print'     => "Print the document",
         'modify'    => "Modify the document",

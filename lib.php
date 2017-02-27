@@ -348,6 +348,8 @@ class local_lessonexport {
     protected function start_export($download) {
         global $CFG;
         $exp = new lessonexport_pdf();
+        $exp->setCourseModule($this->cm);
+        $exp->setLesson($this->lesson);
         $restricttocontext = false;
         if ($download) {
             $restricttocontext = context_module::instance($this->cm->id);
@@ -682,6 +684,17 @@ class lessonexport_pdf extends pdf {
     protected $directimageload = false;
     protected $restricttocontext = false;
 
+    private $cm;
+    private $lesson;
+
+    public function setCourseModule($cm) {
+        $this->cm = $cm;
+    }
+
+    public function setLesson($lesson) {
+        $this->lesson = $lesson;
+    }
+
     public function use_direct_image_load($restricttocontext = false) {
         $this->directimageload = true;
         $this->restricttocontext = $restricttocontext;
@@ -781,8 +794,93 @@ class lessonexport_pdf extends pdf {
         // No header.
     }
 
-    public function footer() {
-        // No footer.
+    public function Footer() {
+        global $CFG;
+        global $DB;
+
+        $config = get_config('local_lessonexport');
+
+        // TODO:- Configure font colours, fony style and single/double row.
+        $this->SetTextColorArray(array(150,150,150));
+        $this->SetFont('helvetica', '', 9);
+        $this->SetY(-15);
+        $frontCoverPageNumbers = $config->pdfFrontCoverPageNumbers;
+
+        $contents = array(
+            $config->pdfFooterTopLeft,
+            $config->pdfFooterTopMiddle,
+            $config->pdfFooterTopRight,
+            $config->pdfFooterBottomLeft,
+            $config->pdfFooterBottomMiddle,
+            $config->pdfFooterBottomRight
+        );
+
+        $lcr = 'L';
+        $iterator = 1;
+        foreach ($contents as $content) {
+            // Remove <p> and <br> tags in content to maintain Y position.
+            $content = preg_replace("~<\/?p>|<br>~", "", $content);
+            $pageNumber = $this->getAliasNumPage();
+            $numPages = $this->getAliasNbPages();
+
+            if ($frontCoverPageNumbers || !$frontCoverPageNumbers && $pageNumber > 1) {
+                // Replace any [pagenumber] shortcodes the number on the current page.
+                if (!(strpos($content, '[pagenumber]') === false)) {
+                    $content = str_replace('[pagenumber]', $pageNumber, $content);
+                }
+
+                // Replace any [numpages] shortcodes with the number of pages in the document.
+                if (!(strpos($content, '[numpages]') === false)) {
+                    $content = str_replace('[numpages]', $numPages, $content);
+                }
+            }
+
+            // Replace any [date] shortcodes with the current date.
+            if (!(strpos($content, '[date]') === false)) {
+                $date = date("j F Y");
+                $content = str_replace('[date]', $date, $content);
+            }
+
+            // Replace any [coursename] shortcodes with the course name being exported.
+            if (!(strpos($content, '[coursename]') === false)) {
+                $course = $this->cm->course;
+                $course = $DB->get_record("course", array('id' => $course));
+                $courseName = $course->fullname;
+                $content = str_replace('[coursename]', $courseName, $content);
+            }
+
+            // Replace any [lessonname] shortcodes with the lesson name being exported.
+            if (!(strpos($content, '[lessonname]') === false)) {
+                $lesson = $this->lesson;
+                $lessonName = $lesson->name;
+                $content = str_replace('[lessonname]', $lessonName, $content);
+            }
+
+            // Reset the position to the left margin.
+            // Each write will just align text from here.
+            $this->SetX(15);
+            $this->writeHTML(
+                $content,
+                false, true, true, false, $lcr
+            );
+
+            // Alter the text alignment based on the iterator.
+            switch ($iterator) {
+                case 1:
+                    $lcr = 'C';
+                    break;
+                case 2:
+                    $lcr = 'R';
+                    break;
+                case 3:
+                    $lcr = 'L';
+                    $this->SetY(-10);
+                    $iterator = 0;
+                    break;
+            }
+
+            $iterator++;
+        }
     }
 
     /**
