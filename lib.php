@@ -406,7 +406,7 @@ class local_lessonexport {
         $exp->SetTextColorArray(array(255,255,255));
         $exp->Text(10, 100, $title, false, false, true, 0, 0, 'C', false, '', 1, false, 'T', 'C');
         $exp->SetTextColorArray(array(0,0,0)); // Set back to default colour.
-        $exp->SetFontSize(10); // Set back to default.
+        $exp->SetFontSize(11); // Set back to default.
 
         // Description.
         $description = format_text($this->lesson->intro, $this->lesson->introformat);
