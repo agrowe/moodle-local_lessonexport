@@ -100,64 +100,8 @@ class local_lessonexport {
 
     /**
      * The cron tasks to run every time the cron is run.
-     * This includes checking the update_queue for changes to email
-     * an exported document to the configured email address.
      */
     public static function cron() {
-        $config = get_config('local_lessonexport');
-        if (empty($config->publishemail)) {
-            return; // No email specified.
-        }
-        if (!$destemail = trim($config->publishemail)) {
-            return; // Email is empty.
-        }
-        if (empty($config->lastcron)) {
-            return; // Don't export every lesson on the site the first time cron runs.
-        }
-
-        // Update the list of lessons waiting to be exported.
-        self::update_queue($config);
-
-        $touser = (object)array(
-            'id' => -1,
-            'email' => $destemail,
-            'maildisplay' => 0,
-        );
-        foreach (get_all_user_name_fields(false) as $fieldname) {
-            $touser->$fieldname = '';
-        }
-
-        $msg = get_string('lessonupdated_body', 'local_lessonexport');
-        while ($lesson = self::get_next_from_queue()) {
-            if ($lesson->exportattempts == self::MAX_EXPORT_ATTEMPTS) {
-                // Already failed to export the maximum allowed times - drop an email to the user to let them know, then move on
-                // to the next lesson to export.
-                $lessonurl = new moodle_url('/mod/lesson/view.php', array('id' => $lesson->cm->id));
-                $info = (object)array(
-                    'name' => $lesson->name,
-                    'url' => $lessonurl->out(false),
-                    'exportattempts' => $lesson->exportattempts,
-                );
-                $failmsg = get_string('lessonexportfailed_body', 'local_lessonexport', $info);
-                email_to_user($touser, $touser, get_string('lessonexportfailed', 'local_lessonexport', $lesson->name), $failmsg);
-            }
-
-            // Attempt the export.
-            try {
-                $export = new local_lessonexport($lesson->cm, $lesson, self::EXPORT_PDF);
-                $filepath = $export->export(false);
-                $filename = basename($filepath);
-                email_to_user($touser, $touser, get_string('lessonupdated', 'local_lessonexport', $lesson->name), $msg, '',
-                              $filepath, $filename, false);
-                @unlink($filepath);
-
-                // Export successful - update the queue.
-                self::remove_from_queue($lesson);
-            } catch (Exception $e) {
-                print_r($e);
-                print_r($lesson);
-            }
-        }
     }
 
     /**
@@ -448,19 +392,21 @@ class local_lessonexport {
 
         $exp->startPage();
         // Rounded rectangle.
-        $exp->RoundedRect(9, 9, 192, 279, 6.5);
+        // $exp->RoundedRect(9, 9, 192, 279, 6.5);
         // Logo.
         $exp->image($CFG->dirroot.'/local/lessonexport/pix/logo.png', 52, 27, 103, 36);
         // Title bar.
-        $exp->Rect(9, 87.5, 192, 2.5, 'F', array(), array(18, 160, 83));
-        $exp->Rect(9, 90, 192, 30, 'F', array(), array(18, 160, 83));
-        $exp->Rect(9, 120, 192, 2.5, 'F', array(), array(18, 160, 83));
+        $exp->Rect(0, 87.5, 220, 2.5, 'F', array(), array(18, 160, 83));
+        $exp->Rect(0, 90, 220, 30, 'F', array(), array(18, 160, 83));
+        $exp->Rect(0, 120, 220, 2.5, 'F', array(), array(18, 160, 83));
 
         // Title text.
         $title = $this->lesson->name;
         $exp->SetFontSize(20);
-        $exp->Text(9, 100, $title, false, false, true, 0, 0, 'C', false, '', 1, false, 'T', 'C');
-        $exp->SetFontSize(12); // Set back to default.
+        $exp->SetTextColorArray(array(255,255,255));
+        $exp->Text(10, 100, $title, false, false, true, 0, 0, 'C', false, '', 1, false, 'T', 'C');
+        $exp->SetTextColorArray(array(0,0,0)); // Set back to default colour.
+        $exp->SetFontSize(10); // Set back to default.
 
         // Description.
         $description = format_text($this->lesson->intro, $this->lesson->introformat);
@@ -820,8 +766,7 @@ class lessonexport_pdf extends pdf {
         foreach ($contents as $content) {
             // Remove <p> and <br> tags in content to maintain Y position.
             $content = preg_replace("~<\/?p>|<br>~", "", $content);
-            $pageNumber = $this->getAliasNumPage();
-            $numPages = $this->getAliasNbPages();
+            $pageNumber = $this->PageNo();
 
             // Replace any [pagenumber] shortcodes the number on the current page.
             if (!(strpos($content, '[pagenumber]') === false)) {
@@ -856,6 +801,14 @@ class lessonexport_pdf extends pdf {
                 $lessonName = $lesson->name;
                 $content = str_replace('[lessonname]', $lessonName, $content);
             }
+
+            // Reset the position to the left margin.
+            // Each write will just align text from here.
+            $this->SetX(15);
+            $this->writeHTML(
+                $content,
+                false, true, true, false, $lcr
+            );
 
             // Alter the text alignment based on the iterator.
             switch ($iterator) {

@@ -28,10 +28,6 @@ if ($hassiteconfig) {
     $ADMIN->add('modules', new admin_category('lessonexport', 'Lesson Export'));
     $page = new admin_settingpage('lessonexportpage', 'Lesson Export');
 
-    $page->add(new admin_setting_configtext('local_lessonexport/publishemail',
-                                            get_string('publishemail', 'local_lessonexport'),
-                                            get_string('publishemail_desc', 'local_lessonexport'), '', PARAM_EMAIL));
-
     $page->add(new admin_setting_configtext('local_lessonexport/customfont',
                                             get_string('customfont', 'local_lessonexport'),
                                             get_string('customfont_desc', 'local_lessonexport'), 'helvetica', PARAM_RAW));
@@ -94,7 +90,7 @@ if ($hassiteconfig) {
         // 'assemble'  => 'enabled',    // assemble
         // 'high-def'  => 'enabled'     // high-def
     );
-    $page->add(new admin_setting_configmulticheckbox('local_lessonexport/pdfprotect',
+    $page->add(new admin_setting_configmulticheckbox('local_lessonexport/pdfProtection',
                                             get_string('pdfprotection', 'local_lessonexport'),
                                             get_string('pdfprotection_desc', 'local_lessonexport'), $defaults, $choices));
 
