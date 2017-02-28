@@ -823,15 +823,16 @@ class lessonexport_pdf extends pdf {
             $pageNumber = $this->getAliasNumPage();
             $numPages = $this->getAliasNbPages();
 
-            if ($frontCoverPageNumbers || !$frontCoverPageNumbers && $pageNumber > 1) {
-                // Replace any [pagenumber] shortcodes the number on the current page.
-                if (!(strpos($content, '[pagenumber]') === false)) {
-                    $content = str_replace('[pagenumber]', $pageNumber, $content);
-                }
-
-                // Replace any [numpages] shortcodes with the number of pages in the document.
-                if (!(strpos($content, '[numpages]') === false)) {
-                    $content = str_replace('[numpages]', $numPages, $content);
+            // Replace any [pagenumber] shortcodes the number on the current page.
+            if (!(strpos($content, '[pagenumber]') === false)) {
+                if ($frontCoverPageNumbers == true || $frontCoverPageNumbers == false && $pageNumber > 1) {
+                    if ($frontCoverPageNumbers == true) {
+                        $content = str_replace('[pagenumber]', $pageNumber, $content);
+                    } else {
+                        $content = str_replace('[pagenumber]', $pageNumber-1, $content);
+                    }
+                } else {
+                    $content = '';
                 }
             }
 
@@ -855,14 +856,6 @@ class lessonexport_pdf extends pdf {
                 $lessonName = $lesson->name;
                 $content = str_replace('[lessonname]', $lessonName, $content);
             }
-
-            // Reset the position to the left margin.
-            // Each write will just align text from here.
-            $this->SetX(15);
-            $this->writeHTML(
-                $content,
-                false, true, true, false, $lcr
-            );
 
             // Alter the text alignment based on the iterator.
             switch ($iterator) {
