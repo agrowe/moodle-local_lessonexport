@@ -327,6 +327,7 @@ class local_lessonexport
         $contents = $page->contents;
         $answers = $page->answers;
         $qtype = $page->qtype;
+        $context = context_module::instance($this->cm->id);
 
         // Don't look for answers in lesson types and don't print
         // short answer answer patterns.
@@ -355,6 +356,8 @@ class local_lessonexport
             }
 
             $contents .= "<div class='export_answer_$pagetype'>$answer->answer</div>";
+            $contents = file_rewrite_pluginfile_urls($contents, 'pluginfile.php', $context->id,
+                                                          'mod_lesson', 'page_answers', $answer->id);
         }
 
         $contents .= "</div>";
